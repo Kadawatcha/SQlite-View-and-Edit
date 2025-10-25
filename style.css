@@ -270,7 +270,7 @@ tbody tr:hover {
 
 td[contenteditable="true"] {
     background-color: #fff3cd;
-    cursor: cell;
+    cursor: text;
     transition: background-color var(--transition-speed) ease;
 }
 
