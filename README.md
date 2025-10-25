@@ -19,6 +19,8 @@ A simple and effective web-based SQLite database viewer and editor that runs ent
 *   **Data Export**:
     *   Export the current table to **CSV** or **Excel (.xlsx)**.
     *   Export all tables at once into a single **ZIP** file (as CSVs).
+    *   Export all tables at once into a single **ZIP** file (as individual XLSX files).
+    *   Export all tables at once into a single **ZIP** file (as JSON files).
 *   **Save Changes**: Download the modified database as a new `.db` file.
 *   **Multilingual**: Interface available in English and French (auto-detects browser language).
 
@@ -58,6 +60,8 @@ Un visualiseur et éditeur de bases de données SQLite simple et efficace qui s'
 *   **Exportation des données**:
     *   Exportez la table actuelle en **CSV** ou **Excel (.xlsx)**.
     *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que CSV).
+    *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que fichiers XLSX individuels).
+    *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que fichiers JSON).
 *   **Sauvegarde des modifications**: Téléchargez la base de données modifiée en tant que nouveau fichier `.db`.
 *   **Multilingue**: Interface disponible en anglais et en français (détecte automatiquement la langue du navigateur).
 

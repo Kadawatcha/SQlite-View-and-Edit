@@ -319,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
                 <option value="zip_all">${translations[currentLang]['export_format_zip_all']}</option>
                 <option value="xlsx_zip_all">${translations[currentLang]['export_format_xlsx_zip_all']}</option>
+                <option value="json_zip_all">${translations[currentLang]['export_format_json_zip_all']}</option>
             </select>
             <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
         `;
@@ -338,6 +339,9 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                     break;
                 case 'xlsx_zip_all':
                     exportAllTablesAsXLSXZip();
+                    break;
+                case 'json_zip_all':
+                    exportAllTablesAsJSONZip();
                     break;
                 default:
                     console.error("Unknown export format selected:", format);
@@ -422,6 +426,38 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
         const zipBlob = await zip.generateAsync({ type: "blob" });
         downloadFile(zipBlob, "database_export_xlsx.zip");
+    }
+
+    async function exportAllTablesAsJSONZip() {
+        const tablesResult = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+        if (!tablesResult || tablesResult.length === 0) return;
+
+        const zip = new JSZip();
+        const tableNames = tablesResult[0].values.map(row => row[0]);
+
+        for (const tableName of tableNames) {
+            const results = db.exec(`SELECT * FROM ${tableName}`);
+            if (results && results.length > 0) {
+                const columns = results[0].columns;
+                const data = results[0].values;
+
+                const dataAsObjects = data.map(row => {
+                    let obj = {};
+                    columns.forEach((col, index) => {
+                        // Gérer les BLOBs comme une chaîne de caractères pour la sérialisation JSON
+                        obj[col] = row[index] instanceof Uint8Array ? '[BLOB]' : row[index];
+                    });
+                    return obj;
+                });
+
+                // Convertir le tableau d'objets en une chaîne JSON formatée
+                const jsonContent = JSON.stringify(dataAsObjects, null, 2);
+                zip.file(`${tableName}.json`, jsonContent);
+            }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        downloadFile(zipBlob, "database_export_json.zip");
     }
 
     // Helper function to download a blob
