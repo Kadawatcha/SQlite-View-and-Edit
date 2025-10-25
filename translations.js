@@ -22,7 +22,8 @@ const translations = {
         "footer_license": "© {year} SQLite Viewer / Editor. Licence MIT.",
         "export_button": "Exporter",
         "export_format_csv": "CSV",
-        "export_format_excel": "Excel (.xlsx)"
+        "export_format_excel": "Excel (.xlsx)",
+        "export_format_zip_all": "Toutes les tables (ZIP)"
     },
     en: {
         "title": "SQLite Viewer / Editor",
@@ -47,6 +48,7 @@ const translations = {
         "footer_license": "© {year} SQLite Viewer / Editor. MIT License.",
         "export_button": "Exporter",
         "export_format_csv": "CSV",
-        "export_format_excel": "Excel (.xlsx)"
+        "export_format_excel": "Excel (.xlsx)",
+        "export_format_zip_all": "All tables (ZIP)"
     }
 };

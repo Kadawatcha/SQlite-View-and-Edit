@@ -249,17 +249,26 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
     function setupExportControls(tableName) {
         exportControlsDiv.innerHTML = `
-            <select id="exportFormat">
-                <option value="csv">${translations[currentLang]['export_format_csv']}</option>
-                <option value="xlsx">${translations[currentLang]['export_format_excel']}</option>
-            </select>
-            <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
+            <div class="export-group">
+                <select id="exportFormat">
+                    <option value="csv">${translations[currentLang]['export_format_csv']}</option>
+                    <option value="xlsx">${translations[currentLang]['export_format_excel']}</option>
+                </select>
+                <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
+            </div>
+            <div class="export-group">
+                <button id="exportAllBtn">${translations[currentLang]['export_format_zip_all']}</button>
+            </div>
         `;
         exportControlsDiv.style.display = 'flex';
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             const format = document.getElementById('exportFormat').value;
             exportTable(tableName, format);
+        });
+
+        document.getElementById('exportAllBtn').addEventListener('click', () => {
+            exportAllTablesAsZip();
         });
     }
 
@@ -275,6 +284,36 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         } else if (format === 'xlsx') {
             exportToXLSX(tableName, columns, data);
         }
+    }
+
+    async function exportAllTablesAsZip() {
+        const tablesResult = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+        if (!tablesResult || tablesResult.length === 0) return;
+
+        const zip = new JSZip();
+        const tableNames = tablesResult[0].values.map(row => row[0]);
+
+        for (const tableName of tableNames) {
+            const results = db.exec(`SELECT * FROM ${tableName}`);
+            if (results && results.length > 0) {
+                const columns = results[0].columns;
+                const data = results[0].values;
+                let csvContent = columns.map(escapeCSV).join(',') + '\r\n';
+                data.forEach(row => {
+                    csvContent += row.map(escapeCSV).join(',') + '\r\n';
+                });
+                zip.file(`${tableName}.csv`, csvContent);
+            }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(zipBlob);
+        link.download = "database_export.zip";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
     }
 
     function escapeCSV(str) {
