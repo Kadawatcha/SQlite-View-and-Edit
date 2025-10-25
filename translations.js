@@ -18,7 +18,8 @@ const translations = {
         "update_error": "La mise à jour a échoué. Vérifiez la console pour plus de détails.",
         "no_db_loaded": "Aucune base de données n'est chargée.",
         "save_error": "Impossible de sauvegarder la base de données.",
-        "table_content_header": "Contenu de la table : {tableName}"
+        "table_content_header": "Contenu de la table : {tableName}",
+        "footer_license": "© {year} SQLite Viewer / Editor. Licence MIT."
     },
     en: {
         "title": "SQLite Viewer / Editor",
@@ -39,6 +40,7 @@ const translations = {
         "update_error": "Update failed. Check the console for more details.",
         "no_db_loaded": "No database is loaded.",
         "save_error": "Could not save the database.",
-        "table_content_header": "Content of table: {tableName}"
+        "table_content_header": "Content of table: {tableName}",
+        "footer_license": "© {year} SQLite Viewer / Editor. MIT License."
     }
 };

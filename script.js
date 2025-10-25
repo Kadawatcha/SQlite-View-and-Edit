@@ -18,8 +18,11 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         const elements = document.querySelectorAll('[data-i18n-key]');
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n-key');
-            const translation = translations[currentLang][key];
+            let translation = translations[currentLang][key];
             if (translation) {
+                // Replace placeholders like {year}
+                translation = translation.replace('{year}', new Date().getFullYear());
+
                 if (el.tagName === 'META' && el.name === 'description') {
                     el.content = translation;
                 } else {
