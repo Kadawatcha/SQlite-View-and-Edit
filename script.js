@@ -314,17 +314,6 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
     function setupExportControls(tableName) {
         exportControlsDiv.innerHTML = `
-            <div class="export-group">
-                <select id="exportFormat">
-                    <option value="csv">${translations[currentLang]['export_format_csv']}</option>
-                    <option value="xlsx">${translations[currentLang]['export_format_excel']}</option>
-                </select>
-                <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
-            </div>
-            <div class="export-group">
-                <button id="exportAllZipBtn">${translations[currentLang]['export_format_zip_all']}</button>
-                <button id="exportAllXlsxBtn">${translations[currentLang]['export_format_excel_all']}</button>
-            </div>
             <select id="exportFormat">
                 <option value="csv_current_table">${translations[currentLang]['export_format_csv']} (${tableName})</option>
                 <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
@@ -337,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             const format = document.getElementById('exportFormat').value;
-            exportTable(tableName, format);
             switch (format) {
                 case 'csv_current_table':
                     exportTable(tableName, 'csv');
@@ -354,14 +342,6 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 default:
                     console.error("Unknown export format selected:", format);
             }
-        });
-
-        document.getElementById('exportAllZipBtn').addEventListener('click', () => {
-            exportAllTablesAsZip();
-        });
-
-        document.getElementById('exportAllXlsxBtn').addEventListener('click', () => {
-            exportAllTablesAsXLSX();
         });
     }
 
