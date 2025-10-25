@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     const fileInput = document.getElementById('dbFile');
     const tableListContainer = document.querySelector('#tableList .table-button-container');
     const tableDataContainer = document.querySelector('#tableData .table-responsive');
@@ -9,6 +9,40 @@ document.addEventListener('DOMContentLoaded', () => {
     let db;
     let currentActiveButton = null;
     let isDbModified = false;
+    let currentLang = 'fr';
+
+    // --- I18n (Internationalization) ---
+
+    function applyTranslations() {
+        document.documentElement.lang = currentLang;
+        const elements = document.querySelectorAll('[data-i18n-key]');
+        elements.forEach(el => {
+            const key = el.getAttribute('data-i18n-key');
+            const translation = translations[currentLang][key];
+            if (translation) {
+                if (el.tagName === 'META' && el.name === 'description') {
+                    el.content = translation;
+                } else {
+                    el.textContent = translation;
+                }
+            }
+        });
+    }
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        applyTranslations();
+        // Update active button style
+        document.querySelectorAll('.lang-switcher button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.lang === lang);
+        });
+        // Re-display initial message if no table is shown
+        if (tableDataContainer.querySelector('p')) {
+            tableDataContainer.innerHTML = `<p data-i18n-key="select_table_prompt">${translations[currentLang]['select_table_prompt']}</p>`;
+        }
+    }
+
+    // --- End I18n ---
 
     const config = {
         locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${filename}`
@@ -17,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) {
-            fileNameSpan.textContent = 'Aucun fichier sélectionné';
+            fileNameSpan.textContent = translations[currentLang]['no_file_selected'];
             return;
         }
         fileNameSpan.textContent = file.name;
@@ -31,19 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
             saveDbButton.disabled = true; // Désactiver le bouton au chargement
             isDbModified = false;
         } catch (error) {
-            console.error("Erreur lors du chargement de la base de données:", error);
-            alert("Impossible de charger le fichier. Est-ce une base de données SQLite valide ?");
+            console.error("Database loading error:", error);
+            alert(translations[currentLang]['load_error']);
         }
     });
 
     function displayTables() {
         tableListContainer.innerHTML = '';
-        tableDataContainer.innerHTML = '<p>Sélectionnez une table pour voir son contenu.</p>';
+        tableDataContainer.innerHTML = `<p data-i18n-key="select_table_prompt">${translations[currentLang]['select_table_prompt']}</p>`;
 
         try {
             const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
             if (tables.length === 0 || tables[0].values.length === 0) {
-                tableListContainer.innerHTML = '<p>Aucune table trouvée.</p>';
+                tableListContainer.innerHTML = `<p data-i18n-key="no_tables_found">${translations[currentLang]['no_tables_found']}</p>`;
                 return;
             }
 
@@ -63,19 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 tableListContainer.appendChild(button);
             });
         } catch (error) {
-            console.error("Erreur pour lister les tables:", error);
-            alert("Une erreur est survenue lors de la lecture des tables.");
+            console.error("Error listing tables:", error);
+            alert(translations[currentLang]['list_tables_error']);
         }
     }
 
     function displayTableData(tableName) {
-        tableDataContainer.innerHTML = `<h2>Contenu de la table : ${tableName}</h2>`;
+        const headerText = translations[currentLang]['table_content_header'].replace('{tableName}', tableName);
+        tableDataContainer.innerHTML = `<h2>${headerText}</h2>`;
     
         try {
             const pkeyInfo = db.exec(`PRAGMA table_info(${tableName})`);
             const pkeyColumn = pkeyInfo[0].values.find(col => col[5] === 1);
             if (!pkeyColumn) {
-                console.warn(`Attention : La table '${tableName}' n'a pas de clé primaire. Les modifications ne seront pas possibles.`);
+                const warningText = translations[currentLang]['no_pk_warning'].replace('{tableName}', tableName);
+                console.warn(warningText);
             }
             const pkeyColumnName = pkeyColumn ? pkeyColumn[1] : null;
 
@@ -139,32 +175,34 @@ document.addEventListener('DOMContentLoaded', () => {
             tableDataContainer.appendChild(table);
 
         } catch (error) {
-            console.error(`Erreur pour afficher la table ${tableName}:`, error);
-            alert(`Impossible d'afficher les données de la table ${tableName}.`);
+            console.error(`Error displaying table ${tableName}:`, error);
+            const errorText = translations[currentLang]['display_table_error'].replace('{tableName}', tableName);
+            alert(errorText);
         }
     }
 
     function updateCell(tableName, colName, newValue, pkeyName, pkeyValue) {
         try {
-            const stmt = db.prepare(`UPDATE ${tableName} SET \`${colName}\` = :value WHERE \`${pkeyName}\` = :id`);
+            const stmt = db.prepare(`UPDATE \`${tableName}\` SET \`${colName}\` = :value WHERE \`${pkeyName}\` = :id`);
             stmt.bind({ ':value': newValue, ':id': pkeyValue });
             stmt.step();
             stmt.free();
-            console.log(`Cellule mise à jour : ${tableName}.${colName} = ${newValue}`);
+            const successText = translations[currentLang]['update_success'].replace('{tableName}', tableName).replace('{colName}', colName).replace('{newValue}', newValue);
+            console.log(successText);
             if (!isDbModified) {
                 isDbModified = true;
                 saveDbButton.disabled = false; // Activer le bouton à la première modification
             }
         } catch (error) {
-            console.error("Erreur de mise à jour:", error);
-            alert("La mise à jour a échoué. Vérifiez la console pour plus de détails.");
+            console.error("Update error:", error);
+            alert(translations[currentLang]['update_error']);
             displayTableData(tableName);
         }
     }
 
     saveDbButton.addEventListener('click', () => {
         if (!db) {
-            alert("Aucune base de données n'est chargée.");
+            alert(translations[currentLang]['no_db_loaded']);
             return;
         }
         try {
@@ -181,8 +219,23 @@ document.addEventListener('DOMContentLoaded', () => {
             isDbModified = false;
             saveDbButton.disabled = true;
         } catch (error) {
-            console.error("Erreur lors de la sauvegarde:", error);
-            alert("Impossible de sauvegarder la base de données.");
+            console.error("Save error:", error);
+            alert(translations[currentLang]['save_error']);
         }
     });
-});
+
+    // --- Initialisation ---
+
+    // Détecter la langue du navigateur et l'appliquer
+    const userLang = navigator.language.split('-')[0]; // 'fr-FR' -> 'fr'
+    const initialLang = translations[userLang] ? userLang : 'en'; // 'en' par défaut
+    setLanguage(initialLang);
+
+    // Gérer le clic sur les boutons de langue
+    document.querySelectorAll('.lang-switcher button').forEach(button => {
+        button.addEventListener('click', (e) => {
+            setLanguage(e.target.dataset.lang);
+        });
+    });
+
+}); // Fin du wrapper principal
