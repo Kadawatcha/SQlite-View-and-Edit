@@ -1,20 +1,48 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQLite Viewer / Editor</title>
+    <meta name="description" content="Un visualiseur et éditeur de bases de données SQLite simple et efficace qui s'exécute directement dans votre navigateur.">
+    <meta property="og:title" content="SQLite Viewer / Editor">
+    <meta property="og:description" content="Un visualiseur et éditeur de bases de données SQLite simple et efficace qui s'exécute directement dans votre navigateur.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="[Your website URL]">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>SQLite Viewer / Editor</h1>
-    <input type="file" id="dbFile" accept=".db, .sqlite, .sqlite3">
-    <div id="controls">
-        <button id="saveDb">Enregistrer les modifications (.db)</button>
+    <div class="main-container">
+        <header>
+            <h1>SQLite Viewer / Editor</h1>
+        </header>
+
+        <div class="controls-container">
+            <input type="file" id="dbFile" accept=".db, .sqlite, .sqlite3">
+            <label for="dbFile" class="file-label">Choisir un fichier</label>
+            <span id="fileName">Aucun fichier sélectionné</span>
+            <div id="controls">
+                <button id="saveDb">Enregistrer les modifications (.db)</button>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <div id="tableList" class="container">
+                <h2>Tables</h2>
+                <div class="table-button-container">
+                    <!-- Les boutons de table seront injectés ici -->
+                </div>
+            </div>
+            <div id="tableData" class="container">
+                <h2>Données de la table</h2>
+                <div class="table-responsive">
+                    <!-- Le tableau de données sera injecté ici -->
+                </div>
+            </div>
+        </div>
     </div>
-    <div id="tableList" class="container"></div>
-    <div id="tableData" class="container"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
     <script src="script.js"></script>
 </body>
