@@ -22,6 +22,7 @@ body {
     padding: 1rem;
     background-color: var(--background-color);
     color: var(--text-color);
+    overflow-x: hidden; /* Empêche le défilement horizontal de la page */
     line-height: 1.6;
 }
 
@@ -154,6 +155,7 @@ button:disabled:hover {
     padding: 1.5rem;
     border-radius: var(--border-radius);
     box-shadow: 0 4px 12px var(--shadow-color);
+    min-width: 0; /* Correction pour permettre au conteneur de rétrécir et d'activer l'overflow */
 }
 
 #tableList h2, #tableData h2 {
