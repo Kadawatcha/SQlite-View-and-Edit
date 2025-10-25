@@ -162,6 +162,52 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         }
     }
 
+    function isURL(str) {
+        if (typeof str !== 'string') return false;
+        try {
+            const url = new URL(str);
+            return url.protocol === "http:" || url.protocol === "https:";
+        } catch (_) {
+            return false;
+        }
+    }
+
+    async function generateLinkPreview(url, container) {
+        const previewContainer = document.createElement('div');
+        previewContainer.style.cssText = 'display: flex; align-items: center; gap: 8px; margin-top: 5px; padding: 5px; border: 1px solid #eee; border-radius: 4px;';
+
+        // Utiliser un proxy CORS pour récupérer les métadonnées de la page
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+        try {
+            const response = await fetch(proxyUrl);
+            if (!response.ok) throw new Error('Network response was not ok.');
+            
+            const data = await response.json();
+            const htmlContent = data.contents;
+
+            if (!htmlContent) {
+                throw new Error("Could not fetch HTML content.");
+            }
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            const title = doc.querySelector('title')?.textContent || url;
+            const faviconLink = doc.querySelector("link[rel*='icon']")?.href || `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`;
+
+            previewContainer.innerHTML = `
+                <img src="${faviconLink}" alt="favicon" width="16" height="16" style="border-radius: 2px;" crossorigin="anonymous">
+                <span style="font-size: 0.9em; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title}</span>
+            `;
+        } catch (error) {
+            console.warn(`Could not generate preview for ${url}:`, error);
+            // Fallback simple si l'aperçu échoue
+            previewContainer.innerHTML = `<span style="font-size: 0.9em; color: #888;">Aperçu non disponible</span>`;
+        }
+        container.appendChild(previewContainer);
+    }
+
     function displayTableData(tableName) {
         const headerText = translations[currentLang]['table_content_header'].replace('{tableName}', tableName);
         // Vider le conteneur de données mais garder le titre et les contrôles d'export
@@ -211,7 +257,20 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                             td.textContent = '[BLOB]';
                         }
                     } else {
-                        td.textContent = value === null ? 'NULL' : value;
+                        const textValue = value === null ? 'NULL' : String(value);
+                        if (isURL(textValue)) {
+                            const linkWrapper = document.createElement('div');
+                            const a = document.createElement('a');
+                            a.href = textValue;
+                            a.textContent = textValue;
+                            a.target = '_blank';
+                            a.rel = 'noopener noreferrer';
+                            linkWrapper.appendChild(a);
+                            td.appendChild(linkWrapper);
+                            generateLinkPreview(textValue, linkWrapper);
+                        } else {
+                            td.textContent = textValue;
+                        }
                     }
 
                     if (pkeyColumnName && colName !== pkeyColumnName) {
@@ -223,7 +282,13 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                             }
                         });
                         td.addEventListener('blur', (e) => {
-                            const newValue = e.target.textContent;
+                            // Si la cellule contient un lien, la valeur est dans le div > a
+                            let newValue;
+                            if (e.target.querySelector('a')) {
+                                newValue = e.target.querySelector('a').textContent;
+                            } else {
+                                newValue = e.target.textContent;
+                            }
                             updateCell(tableName, colName, newValue, pkeyColumnName, pkeyValue);
                         });
                     }
