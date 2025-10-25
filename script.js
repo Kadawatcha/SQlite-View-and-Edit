@@ -325,12 +325,35 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 <button id="exportAllZipBtn">${translations[currentLang]['export_format_zip_all']}</button>
                 <button id="exportAllXlsxBtn">${translations[currentLang]['export_format_excel_all']}</button>
             </div>
+            <select id="exportFormat">
+                <option value="csv_current_table">${translations[currentLang]['export_format_csv']} (${tableName})</option>
+                <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
+                <option value="zip_all">${translations[currentLang]['export_format_zip_all']}</option>
+                <option value="excel_all">${translations[currentLang]['export_format_excel_all']}</option>
+            </select>
+            <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
         `;
         exportControlsDiv.style.display = 'flex';
 
         document.getElementById('exportBtn').addEventListener('click', () => {
             const format = document.getElementById('exportFormat').value;
             exportTable(tableName, format);
+            switch (format) {
+                case 'csv_current_table':
+                    exportTable(tableName, 'csv');
+                    break;
+                case 'xlsx_current_table':
+                    exportTable(tableName, 'xlsx');
+                    break;
+                case 'zip_all':
+                    exportAllTablesAsZip();
+                    break;
+                case 'excel_all':
+                    exportAllTablesAsXLSX();
+                    break;
+                default:
+                    console.error("Unknown export format selected:", format);
+            }
         });
 
         document.getElementById('exportAllZipBtn').addEventListener('click', () => {
