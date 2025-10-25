@@ -23,8 +23,7 @@ const translations = {
         "export_button": "Exporter",
         "export_format_csv": "CSV",
         "export_format_excel": "Excel (.xlsx)",
-        "export_format_zip_all": "Toutes les tables (CSV ZIP)", // Renommé pour plus de clarté
-        "export_format_excel_all": "Toutes les tables (XLSX - Feuilles séparées)", // Renommé pour plus de clarté
+        "export_format_zip_all": "Toutes les tables (CSV ZIP)",
         "export_format_xlsx_zip_all": "Toutes les tables (XLSX ZIP)" // Nouvelle option
     },
     en: {
@@ -51,8 +50,7 @@ const translations = {
         "export_button": "Exporter",
         "export_format_csv": "CSV",
         "export_format_excel": "Excel (.xlsx)",
-        "export_format_zip_all": "All tables (CSV ZIP)", // Renamed for clarity
-        "export_format_excel_all": "All tables (XLSX - Separate Sheets)", // Renamed for clarity
+        "export_format_zip_all": "All tables (CSV ZIP)",
         "export_format_xlsx_zip_all": "All tables (XLSX ZIP)" // New option
     }
 };
