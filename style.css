@@ -163,12 +163,6 @@ button:disabled:hover {
     min-width: 0; /* Correction pour permettre au conteneur de rétrécir et d'activer l'overflow */
 }
 
-.table-header-controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-}
 
 #tableList h2, #tableData h2 {
     margin-top: 0;
@@ -181,6 +175,7 @@ button:disabled:hover {
 
 #exportControls {
     display: flex;
+    margin-bottom: 1rem; /* Ajout d'un espace sous les contrôles */
     gap: 0.5rem;
     align-items: center;
 }
