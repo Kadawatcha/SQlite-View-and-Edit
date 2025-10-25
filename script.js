@@ -36,8 +36,12 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         document.querySelectorAll('.lang-switcher button').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.lang === lang);
         });
-        // Re-display initial message if no table is shown
-        if (tableDataContainer.querySelector('p')) {
+        // Re-display initial message or currently active table to update its title
+        if (currentActiveButton) {
+            // A table is active, re-render it
+            const tableName = currentActiveButton.textContent;
+            displayTableData(tableName);
+        } else if (tableDataContainer.querySelector('p')) {
             tableDataContainer.innerHTML = `<p data-i18n-key="select_table_prompt">${translations[currentLang]['select_table_prompt']}</p>`;
         }
     }
