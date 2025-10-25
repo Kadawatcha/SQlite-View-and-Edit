@@ -34,6 +34,7 @@ body {
 header {
     text-align: center;
     margin-bottom: 2rem;
+    position: relative;
 }
 
 h1 {
@@ -41,6 +42,27 @@ h1 {
     font-weight: 700;
     color: var(--header-color);
     margin: 0;
+}
+
+.lang-switcher {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.lang-switcher button {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+}
+.lang-switcher button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
 }
 
 .controls-container {
