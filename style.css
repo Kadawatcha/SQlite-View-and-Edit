@@ -163,6 +163,13 @@ button:disabled:hover {
     min-width: 0; /* Correction pour permettre au conteneur de rétrécir et d'activer l'overflow */
 }
 
+.table-header-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
 #tableList h2, #tableData h2 {
     margin-top: 0;
     color: var(--header-color);
@@ -171,6 +178,27 @@ button:disabled:hover {
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
 }
+
+#exportControls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#exportFormat {
+    padding: 0.5rem;
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+#exportBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background-color: #17a2b8;
+}
+
+#exportBtn:hover { background-color: #138496; }
 
 .table-button-container {
     display: flex;

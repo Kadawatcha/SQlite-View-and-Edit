@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     const tableListContainer = document.querySelector('#tableList .table-button-container');
     const tableDataContainer = document.querySelector('#tableData .table-responsive');
     const controlsDiv = document.getElementById('controls');
+    const exportControlsDiv = document.getElementById('exportControls');
     const saveDbButton = document.getElementById('saveDb');
     const fileNameSpan = document.getElementById('fileName');
 
@@ -80,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     function displayTables() {
         tableListContainer.innerHTML = '';
         tableDataContainer.innerHTML = `<p data-i18n-key="select_table_prompt">${translations[currentLang]['select_table_prompt']}</p>`;
+        exportControlsDiv.style.display = 'none'; // Cacher les contrôles d'export
 
         try {
             const tables = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
@@ -111,7 +113,10 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
     function displayTableData(tableName) {
         const headerText = translations[currentLang]['table_content_header'].replace('{tableName}', tableName);
-        tableDataContainer.innerHTML = `<h2>${headerText}</h2>`;
+        // Vider le conteneur de données mais garder le titre et les contrôles d'export
+        const tableHeader = document.querySelector('#tableData .table-header-controls h2');
+        tableHeader.innerHTML = headerText;
+        tableDataContainer.innerHTML = ''; // Vider seulement la zone du tableau
     
         try {
             const pkeyInfo = db.exec(`PRAGMA table_info(${tableName})`);
@@ -181,11 +186,86 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             table.appendChild(tbody);
             tableDataContainer.appendChild(table);
 
+            // Afficher et configurer les contrôles d'exportation
+            setupExportControls(tableName);
+
         } catch (error) {
             console.error(`Error displaying table ${tableName}:`, error);
             const errorText = translations[currentLang]['display_table_error'].replace('{tableName}', tableName);
             alert(errorText);
         }
+    }
+
+    function setupExportControls(tableName) {
+        exportControlsDiv.innerHTML = `
+            <select id="exportFormat">
+                <option value="csv">${translations[currentLang]['export_format_csv']}</option>
+                <option value="xlsx">${translations[currentLang]['export_format_excel']}</option>
+            </select>
+            <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
+        `;
+        exportControlsDiv.style.display = 'flex';
+
+        document.getElementById('exportBtn').addEventListener('click', () => {
+            const format = document.getElementById('exportFormat').value;
+            exportTable(tableName, format);
+        });
+    }
+
+    function exportTable(tableName, format) {
+        const results = db.exec(`SELECT * FROM ${tableName}`);
+        if (!results || results.length === 0) return;
+
+        const columns = results[0].columns;
+        const data = results[0].values;
+
+        if (format === 'csv') {
+            exportToCSV(tableName, columns, data);
+        } else if (format === 'xlsx') {
+            exportToXLSX(tableName, columns, data);
+        }
+    }
+
+    function escapeCSV(str) {
+        if (str === null || str === undefined) return '';
+        str = String(str);
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+            return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+    }
+
+    function exportToCSV(tableName, columns, data) {
+        let csvContent = "data:text/csv;charset=utf-8,";
+        csvContent += columns.map(escapeCSV).join(',') + '\r\n';
+
+        data.forEach(row => {
+            csvContent += row.map(escapeCSV).join(',') + '\r\n';
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `${tableName}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportToXLSX(tableName, columns, data) {
+        // La bibliothèque xlsx attend un tableau d'objets
+        const dataAsObjects = data.map(row => {
+            let obj = {};
+            columns.forEach((col, index) => {
+                obj[col] = row[index];
+            });
+            return obj;
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(dataAsObjects);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, tableName);
+        XLSX.writeFile(workbook, `${tableName}.xlsx`);
     }
 
     function updateCell(tableName, colName, newValue, pkeyName, pkeyValue) {

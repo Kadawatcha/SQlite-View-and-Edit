@@ -19,7 +19,10 @@ const translations = {
         "no_db_loaded": "Aucune base de données n'est chargée.",
         "save_error": "Impossible de sauvegarder la base de données.",
         "table_content_header": "Contenu de la table : {tableName}",
-        "footer_license": "© {year} SQLite Viewer / Editor. Licence MIT."
+        "footer_license": "© {year} SQLite Viewer / Editor. Licence MIT.",
+        "export_button": "Exporter",
+        "export_format_csv": "CSV",
+        "export_format_excel": "Excel (.xlsx)"
     },
     en: {
         "title": "SQLite Viewer / Editor",
@@ -41,6 +44,9 @@ const translations = {
         "no_db_loaded": "No database is loaded.",
         "save_error": "Could not save the database.",
         "table_content_header": "Content of table: {tableName}",
-        "footer_license": "© {year} SQLite Viewer / Editor. MIT License."
+        "footer_license": "© {year} SQLite Viewer / Editor. MIT License.",
+        "export_button": "Exporter",
+        "export_format_csv": "CSV",
+        "export_format_excel": "Excel (.xlsx)"
     }
 };
