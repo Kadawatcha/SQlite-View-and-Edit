@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     let db;
     let currentActiveButton = null;
     let isDbModified = false;
+    const pagination = {
+        rowsPerPage: 10,
+        currentPage: 1,
+        tableName: null
+    };
+
     let currentLang = 'fr';
 
     // --- IndexedDB Persistence ---
@@ -208,9 +214,11 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         container.appendChild(previewContainer);
     }
 
-    function displayTableData(tableName) {
+    function displayTableData(tableName, page = 1) {
+        pagination.tableName = tableName;
+        pagination.currentPage = page;
+
         const headerText = translations[currentLang]['table_content_header'].replace('{tableName}', tableName);
-        // Vider le conteneur de données mais garder le titre et les contrôles d'export
         const tableHeader = document.querySelector('#tableData .table-header-controls h2');
         tableHeader.innerHTML = headerText;
         tableDataContainer.innerHTML = ''; // Vider seulement la zone du tableau
@@ -224,7 +232,12 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             }
             const pkeyColumnName = pkeyColumn ? pkeyColumn[1] : null;
 
-            const stmt = db.prepare(`SELECT * FROM ${tableName}`);
+            // Pagination: Count total rows
+            const countResult = db.exec(`SELECT COUNT(*) FROM \`${tableName}\`;`);
+            const totalRows = countResult[0].values[0][0];
+            const totalPages = Math.ceil(totalRows / pagination.rowsPerPage);
+            const offset = (page - 1) * pagination.rowsPerPage;
+            const stmt = db.prepare(`SELECT * FROM \`${tableName}\` LIMIT ${pagination.rowsPerPage} OFFSET ${offset}`);
             const table = document.createElement('table');
             const thead = document.createElement('thead');
             const tbody = document.createElement('tbody');
@@ -301,6 +314,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             table.appendChild(thead);
             table.appendChild(tbody);
             tableDataContainer.appendChild(table);
+            renderPaginationControls(totalRows, totalPages);
 
             // Afficher et configurer les contrôles d'exportation
             setupExportControls(tableName);
@@ -311,6 +325,45 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             alert(errorText);
         }
     }
+
+    function renderPaginationControls(totalRows, totalPages) {
+        let paginationControlsContainer = document.getElementById('paginationControls');
+        if (!paginationControlsContainer) {
+            paginationControlsContainer = document.createElement('div');
+            paginationControlsContainer.id = 'paginationControls';
+            tableDataContainer.parentNode.insertBefore(paginationControlsContainer, tableDataContainer.nextSibling);
+        }
+
+        if (totalPages <= 1) {
+            paginationControlsContainer.innerHTML = '';
+            return;
+        }
+
+        const { currentPage } = pagination;
+
+        paginationControlsContainer.innerHTML = `
+            <button id="prevPage" ${currentPage === 1 ? 'disabled' : ''}>&laquo; Précédent</button>
+            <span>Page ${currentPage} / ${totalPages}</span>
+            <button id="nextPage" ${currentPage === totalPages ? 'disabled' : ''}>Suivant &raquo;</button>
+        `;
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (pagination.currentPage > 1) {
+                displayTableData(pagination.tableName, pagination.currentPage - 1);
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            if (pagination.currentPage < totalPages) {
+                displayTableData(pagination.tableName, pagination.currentPage + 1);
+            }
+        });
+    }
+
+
+
+
+
 
     function setupExportControls(tableName) {
         exportControlsDiv.innerHTML = `
