@@ -44,18 +44,36 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         if (!idb) return;
         const transaction = idb.transaction([STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
-        store.put(data, 'lastDb');
-        store.put(name, 'lastDbName');
+        // Enregistrer la base de données, son nom, et le timestamp actuel
+        store.put(data, 'lastDb'); 
+        store.put(name, 'lastDbName'); 
+        store.put(Date.now(), 'lastDbTimestamp');
     }
 
     async function loadDbFromIndexedDB() {
         if (!idb) return null;
         return new Promise((resolve) => {
-            const transaction = idb.transaction([STORE_NAME], 'readonly');
+            const transaction = idb.transaction([STORE_NAME], 'readwrite'); // readwrite pour pouvoir supprimer si expiré
             const store = transaction.objectStore(STORE_NAME);
             const dataReq = store.get('lastDb');
             const nameReq = store.get('lastDbName');
-            transaction.oncomplete = () => resolve({ data: dataReq.result, name: nameReq.result });
+            const timestampReq = store.get('lastDbTimestamp');
+
+            transaction.oncomplete = () => {
+                const lastTimestamp = timestampReq.result;
+                const fiveMinutes = 5 * 60 * 1000;
+
+                // Si un timestamp existe et qu'il date de moins de 5 minutes
+                if (lastTimestamp && (Date.now() - lastTimestamp < fiveMinutes)) {
+                    resolve({ data: dataReq.result, name: nameReq.result });
+                } else {
+                    // Sinon, la session a expiré, on nettoie IndexedDB
+                    store.delete('lastDb');
+                    store.delete('lastDbName');
+                    store.delete('lastDbTimestamp');
+                    resolve(null); // Et on ne retourne rien à charger
+                }
+            };
         });
     }
 
@@ -590,7 +608,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             stmt.bind({ ':value': newValue, ':id': pkeyValue });
             stmt.step();
             stmt.free();
-            const successText = translations[currentLang]['update_success'].replace('{tableName}', tableName).replace('{colName}', colName).replace('{newValue}', newValue);
+            const successText = translations[currentLang]['update_success'].replace('{tableName}', tableName).replace('{colName}', colName).replace('{newValue}', String(newValue).substring(0, 50));
             console.log(successText);
             saveDbToIndexedDB(db.export(), fileNameSpan.textContent); // Save changes to IndexedDB
             if (!isDbModified) {
