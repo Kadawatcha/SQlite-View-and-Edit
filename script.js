@@ -61,18 +61,18 @@ function displayTables() {
 
 // Affiche les données d'une table spécifique
 function displayTableData(tableName) {
-    tableDataDiv.innerHTML = `<h2>Contenu de la table : </h2>`;
+    tableDataDiv.innerHTML = `<h2>Contenu de la table : ${tableName}</h2>`;
     
     try {
         // Récupérer les informations sur les colonnes pour trouver la clé primaire
-        const pkeyInfo = db.exec(`PRAGMA table_info()`);
+        const pkeyInfo = db.exec(`PRAGMA table_info(${tableName})`);
         const pkeyColumn = pkeyInfo[0].values.find(col => col[5] === 1); // col[5] is the 'pk' flag
         if (!pkeyColumn) {
-            alert(`Attention : La table '' n'a pas de clé primaire. Les modifications ne seront pas possibles.`);
+            alert(`Attention : La table '${tableName}' n'a pas de clé primaire. Les modifications ne seront pas possibles.`);
         }
         const pkeyColumnName = pkeyColumn ? pkeyColumn[1] : null; // col[1] is the 'name'
 
-        const stmt = db.prepare(`SELECT * FROM `);
+        const stmt = db.prepare(`SELECT * FROM ${tableName}`);
         const table = document.createElement('table');
         const thead = document.createElement('thead');
         const tbody = document.createElement('tbody');
@@ -130,19 +130,19 @@ function displayTableData(tableName) {
         tableDataDiv.appendChild(table);
 
     } catch (error) {
-        console.error(`Erreur pour afficher la table :`, error);
-        alert(`Impossible d'afficher les données de la table .`);
+        console.error(`Erreur pour afficher la table ${tableName}:`, error);
+        alert(`Impossible d'afficher les données de la table ${tableName}.`);
     }
 }
 
 // Met à jour une cellule dans la base de données
 function updateCell(tableName, colName, newValue, pkeyName, pkeyValue) {
     try {
-        const stmt = db.prepare(`UPDATE  SET  = :value WHERE  = :id`);
+        const stmt = db.prepare(`UPDATE ${tableName} SET ${colName} = :value WHERE ${pkeyName} = :id`);
         stmt.bind({ ':value': newValue, ':id': pkeyValue });
         stmt.step();
         stmt.free();
-        console.log(`Cellule mise à jour : . = `);
+        console.log(`Cellule mise à jour : ${tableName}.${colName} = ${newValue}`);
     } catch (error) {
         console.error("Erreur de mise à jour:", error);
         alert("La mise à jour a échoué. Vérifiez la console pour plus de détails.");
