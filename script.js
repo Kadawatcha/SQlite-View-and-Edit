@@ -12,6 +12,49 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     let isDbModified = false;
     let currentLang = 'fr';
 
+    // --- IndexedDB Persistence ---
+    const DB_NAME = 'SQLiteViewerDB';
+    const STORE_NAME = 'databaseFiles';
+    let idb;
+
+    async function initIndexedDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onerror = () => reject("Erreur IndexedDB: " + request.error);
+            request.onsuccess = () => {
+                idb = request.result;
+                resolve(idb);
+            };
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME);
+                }
+            };
+        });
+    }
+
+    async function saveDbToIndexedDB(data, name) {
+        if (!idb) return;
+        const transaction = idb.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        store.put(data, 'lastDb');
+        store.put(name, 'lastDbName');
+    }
+
+    async function loadDbFromIndexedDB() {
+        if (!idb) return null;
+        return new Promise((resolve) => {
+            const transaction = idb.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const dataReq = store.get('lastDb');
+            const nameReq = store.get('lastDbName');
+            transaction.oncomplete = () => resolve({ data: dataReq.result, name: nameReq.result });
+        });
+    }
+
+    // --- End IndexedDB ---
+
     // --- I18n (Internationalization) ---
 
     function applyTranslations() {
@@ -50,6 +93,23 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         }
     }
 
+    async function initializeAppWithDb(data, name) {
+        try {
+            const SQL = await initSqlJs(config);
+            db = new SQL.Database(data);
+            displayTables();
+            controlsDiv.style.display = 'flex';
+            saveDbButton.disabled = true;
+            isDbModified = false;
+            if (name) {
+                fileNameSpan.textContent = name;
+            }
+        } catch (error) {
+            console.error("Database loading error from memory:", error);
+            alert(translations[currentLang]['load_error']);
+        }
+    }
+
     // --- End I18n ---
 
     const config = {
@@ -64,18 +124,9 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         }
         fileNameSpan.textContent = file.name;
 
-        try {
-            const SQL = await initSqlJs(config);
-            const fileBuffer = await file.arrayBuffer();
-            db = new SQL.Database(new Uint8Array(fileBuffer));
-            displayTables();
-            controlsDiv.style.display = 'block';
-            saveDbButton.disabled = true; // Désactiver le bouton au chargement
-            isDbModified = false;
-        } catch (error) {
-            console.error("Database loading error:", error);
-            alert(translations[currentLang]['load_error']);
-        }
+        const fileBuffer = await file.arrayBuffer();
+        await saveDbToIndexedDB(new Uint8Array(fileBuffer), file.name);
+        await initializeAppWithDb(new Uint8Array(fileBuffer), file.name);
     });
 
     function displayTables() {
@@ -276,6 +327,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             stmt.free();
             const successText = translations[currentLang]['update_success'].replace('{tableName}', tableName).replace('{colName}', colName).replace('{newValue}', newValue);
             console.log(successText);
+            saveDbToIndexedDB(db.export(), fileNameSpan.textContent); // Save changes to IndexedDB
             if (!isDbModified) {
                 isDbModified = true;
                 saveDbButton.disabled = false; // Activer le bouton à la première modification
@@ -304,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             window.URL.revokeObjectURL(a.href);
             // Réinitialiser l'état après la sauvegarde
             isDbModified = false;
+            saveDbToIndexedDB(data, fileNameSpan.textContent); // Also update IndexedDB on explicit save
             saveDbButton.disabled = true;
         } catch (error) {
             console.error("Save error:", error);
@@ -313,10 +366,20 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
 
     // --- Initialisation ---
 
-    // Détecter la langue du navigateur et l'appliquer
-    const userLang = navigator.language.split('-')[0]; // 'fr-FR' -> 'fr'
-    const initialLang = translations[userLang] ? userLang : 'en'; // 'en' par défaut
-    setLanguage(initialLang);
+    async function start() {
+        // Détecter la langue du navigateur et l'appliquer
+        const userLang = navigator.language.split('-')[0]; // 'fr-FR' -> 'fr'
+        const initialLang = translations[userLang] ? userLang : 'en'; // 'en' par défaut
+        setLanguage(initialLang);
+
+        await initIndexedDB();
+        const storedDb = await loadDbFromIndexedDB();
+        if (storedDb && storedDb.data) {
+            await initializeAppWithDb(storedDb.data, storedDb.name);
+        }
+    }
+
+    start();
 
     // Gérer le clic sur les boutons de langue
     document.querySelectorAll('.lang-switcher button').forEach(button => {
