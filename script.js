@@ -322,7 +322,8 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
             </div>
             <div class="export-group">
-                <button id="exportAllBtn">${translations[currentLang]['export_format_zip_all']}</button>
+                <button id="exportAllZipBtn">${translations[currentLang]['export_format_zip_all']}</button>
+                <button id="exportAllXlsxBtn">${translations[currentLang]['export_format_excel_all']}</button>
             </div>
         `;
         exportControlsDiv.style.display = 'flex';
@@ -332,8 +333,12 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             exportTable(tableName, format);
         });
 
-        document.getElementById('exportAllBtn').addEventListener('click', () => {
+        document.getElementById('exportAllZipBtn').addEventListener('click', () => {
             exportAllTablesAsZip();
+        });
+
+        document.getElementById('exportAllXlsxBtn').addEventListener('click', () => {
+            exportAllTablesAsXLSX();
         });
     }
 
@@ -381,6 +386,37 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         URL.revokeObjectURL(link.href);
     }
 
+    async function exportAllTablesAsXLSX() {
+        const tablesResult = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+        if (!tablesResult || tablesResult.length === 0) return;
+
+        const workbook = XLSX.utils.book_new();
+        const tableNames = tablesResult[0].values.map(row => row[0]);
+
+        for (const tableName of tableNames) {
+            const results = db.exec(`SELECT * FROM ${tableName}`);
+            if (results && results.length > 0) {
+                const columns = results[0].columns;
+                const data = results[0].values;
+
+                // Convertir les données en tableau d'objets
+                const dataAsObjects = data.map(row => {
+                    let obj = {};
+                    columns.forEach((col, index) => {
+                        // Gérer les BLOBs comme des chaînes vides pour éviter les erreurs
+                        obj[col] = row[index] instanceof Uint8Array ? '[BLOB]' : row[index];
+                    });
+                    return obj;
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(dataAsObjects);
+                XLSX.utils.book_append_sheet(workbook, worksheet, tableName);
+            }
+        }
+
+        XLSX.writeFile(workbook, "database_export.xlsx");
+    }
+
     function escapeCSV(str) {
         if (str === null || str === undefined) return '';
         str = String(str);
@@ -412,7 +448,8 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         const dataAsObjects = data.map(row => {
             let obj = {};
             columns.forEach((col, index) => {
-                obj[col] = row[index];
+                // Gérer les BLOBs comme des chaînes vides pour éviter les erreurs
+                obj[col] = row[index] instanceof Uint8Array ? '[BLOB]' : row[index];
             });
             return obj;
         });

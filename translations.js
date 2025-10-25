@@ -23,7 +23,8 @@ const translations = {
         "export_button": "Exporter",
         "export_format_csv": "CSV",
         "export_format_excel": "Excel (.xlsx)",
-        "export_format_zip_all": "Toutes les tables (ZIP)"
+        "export_format_zip_all": "Toutes les tables (ZIP)",
+        "export_format_excel_all": "Toutes les tables (XLSX)"
     },
     en: {
         "title": "SQLite Viewer / Editor",
@@ -49,6 +50,7 @@ const translations = {
         "export_button": "Exporter",
         "export_format_csv": "CSV",
         "export_format_excel": "Excel (.xlsx)",
-        "export_format_zip_all": "All tables (ZIP)"
+        "export_format_zip_all": "All tables (ZIP)",
+        "export_format_excel_all": "All tables (XLSX)"
     }
 };
