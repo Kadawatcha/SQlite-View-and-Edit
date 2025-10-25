@@ -316,10 +316,12 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         exportControlsDiv.innerHTML = `
             <select id="exportFormat">
                 <option value="csv_current_table">${translations[currentLang]['export_format_csv']} (${tableName})</option>
+                <option value="json_current_table">${translations[currentLang]['export_format_json']} (${tableName})</option>
                 <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
                 <option value="zip_all">${translations[currentLang]['export_format_zip_all']}</option>
+                 <option value="json_zip_all">${translations[currentLang]['export_format_json_zip_all']}</option>
                 <option value="xlsx_zip_all">${translations[currentLang]['export_format_xlsx_zip_all']}</option>
-                <option value="json_zip_all">${translations[currentLang]['export_format_json_zip_all']}</option>
+               
             </select>
             <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
         `;
@@ -330,6 +332,9 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             switch (format) {
                 case 'csv_current_table':
                     exportTable(tableName, 'csv');
+                    break;
+                case 'json_current_table':
+                    exportTable(tableName, 'json');
                     break;
                 case 'xlsx_current_table':
                     exportTable(tableName, 'xlsx');
@@ -360,6 +365,8 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             exportToCSV(tableName, columns, data);
         } else if (format === 'xlsx') {
             exportToXLSX(tableName, columns, data);
+        } else if (format === 'json') {
+            exportToJSON(tableName, columns, data);
         }
     }
 
@@ -489,6 +496,22 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         });
 
         downloadFile(new Blob([csvContent], { type: "text/csv;charset=utf-8" }), `${tableName}.csv`);
+    }
+
+    function exportToJSON(tableName, columns, data) {
+        const dataAsObjects = data.map(row => {
+            let obj = {};
+            columns.forEach((col, index) => {
+                // Gérer les BLOBs comme une chaîne de caractères pour la sérialisation JSON
+                obj[col] = row[index] instanceof Uint8Array ? '[BLOB]' : row[index];
+            });
+            return obj;
+        });
+
+        // Convertir le tableau d'objets en une chaîne JSON formatée
+        const jsonContent = JSON.stringify(dataAsObjects, null, 2);
+        const blob = new Blob([jsonContent], { type: "application/json;charset=utf-8" });
+        downloadFile(blob, `${tableName}.json`);
     }
 
     function exportToXLSX(tableName, columns, data) {

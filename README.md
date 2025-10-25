@@ -18,7 +18,7 @@ A simple and effective web-based SQLite database viewer and editor that runs ent
 *   **Image Support**: Automatically detects and displays images (PNG, JPEG, GIF) stored as BLOBs.
 *   **Data Export**:
     *   Export the current table to **CSV** or **Excel (.xlsx)**.
-    *   Export all tables at once into a single **ZIP** file (as CSVs).
+    *   Export the current table to **CSV**, **JSON**, or **Excel (.xlsx)**.
     *   Export all tables at once into a single **ZIP** file (as individual XLSX files).
     *   Export all tables at once into a single **ZIP** file (as JSON files).
 *   **Save Changes**: Download the modified database as a new `.db` file.
@@ -59,7 +59,7 @@ Un visualiseur et éditeur de bases de données SQLite simple et efficace qui s'
 *   **Support des images**: Détecte et affiche automatiquement les images (PNG, JPEG, GIF) stockées en tant que BLOBs.
 *   **Exportation des données**:
     *   Exportez la table actuelle en **CSV** ou **Excel (.xlsx)**.
-    *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que CSV).
+    *   Exportez la table actuelle en **CSV**, **JSON**, ou **Excel (.xlsx)**.
     *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que fichiers XLSX individuels).
     *   Exportez toutes les tables en une seule fois dans un fichier **ZIP** (en tant que fichiers JSON).
 *   **Sauvegarde des modifications**: Téléchargez la base de données modifiée en tant que nouveau fichier `.db`.
