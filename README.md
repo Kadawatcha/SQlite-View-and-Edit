@@ -30,23 +30,6 @@ The easiest way to use the application is to access it directly online:
 
 Simply open the link, click "Choose a file", and select your SQLite database.
 
-#### For Local Development
-
-If you want to run the project locally:
-
-1.  **Clone or download this repository.**
-2.  **Start a local server** in the project's root directory. Because the application loads files from your local system and uses WebAssembly, it must be served via HTTP due to browser security policies (CORS). A simple way to do this is with Python:
-    ```bash
-    # For Python 3
-    python -m http.server
-    ```
-    Or if you use Node.js, you can install `http-server`:
-    ```bash
-    npm install -g http-server
-    http-server
-    ```
-3.  **Open your browser** and navigate to the address provided by your server (usually `http://localhost:8000`).
-
 ### 🛠️ Technologies Used
 
 *   **sql.js**: SQLite compiled to WebAssembly.
@@ -85,23 +68,6 @@ La manière la plus simple d'utiliser l'application est d'y accéder directement
 **https://kadawatcha.github.io/SQlite-Viewer-Editor/**
 
 Ouvrez simplement le lien, cliquez sur "Choisir un fichier", et sélectionnez votre base de données SQLite.
-
-#### Pour le développement local
-
-Si vous souhaitez exécuter le projet localement :
-
-1.  **Clonez ou téléchargez ce dépôt.**
-2.  **Démarrez un serveur local** à la racine du projet. Parce que l'application charge des fichiers locaux et utilise WebAssembly, elle doit être servie via HTTP en raison des politiques de sécurité des navigateurs (CORS). Une façon simple de le faire est avec Python :
-    ```bash
-    # Pour Python 3
-    python -m http.server
-    ```
-    Ou si vous utilisez Node.js, vous pouvez installer `http-server` :
-    ```bash
-    npm install -g http-server
-    http-server
-    ```
-3.  **Ouvrez votre navigateur** et allez à l'adresse fournie par votre serveur (généralement `http://localhost:8000`).
 
 ### 🛠️ Technologies utilisées
 
