@@ -49,7 +49,7 @@ const translations = {
         "save_error": "Could not save the database.",
         "table_content_header": "Content of table: {tableName}",
         "footer_license": "© {year} SQLite Viewer / Editor. MIT License.",
-        "export_button": "Exporter",
+        "export_button": "Export",
         "export_format_csv": "CSV",
         "export_format_excel": "Excel (.xlsx)",
         "export_format_json": "JSON",

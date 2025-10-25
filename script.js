@@ -378,17 +378,18 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         });
     }
 
-
-
-
-
-
+    // =================================================================
+    // ======================== EXPORT FUNCTIONS =======================
+    // =================================================================
     function setupExportControls(tableName) {
         exportControlsDiv.innerHTML = `
             <select id="exportFormat">
+                <optgroup label="${tableName}">
                 <option value="csv_current_table">${translations[currentLang]['export_format_csv']} (${tableName})</option>
                 <option value="json_current_table">${translations[currentLang]['export_format_json']} (${tableName})</option>
                 <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
+                </optgroup>
+                <optgroup label="Toutes les tables">
                 <option value="zip_all">${translations[currentLang]['export_format_zip_all']}</option>
                  <option value="json_zip_all">${translations[currentLang]['export_format_json_zip_all']}</option>
                 <option value="xlsx_zip_all">${translations[currentLang]['export_format_xlsx_zip_all']}</option>
@@ -396,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             </select>
             <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
         `;
+
         exportControlsDiv.style.display = 'flex';
 
         document.getElementById('exportBtn').addEventListener('click', () => {

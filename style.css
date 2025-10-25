@@ -300,3 +300,36 @@ footer {
 footer p {
     margin: 0;
 }
+
+/* --- Toast Notification --- */
+#toast-notification {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    position: fixed;
+    z-index: 1001; /* Au-dessus du footer */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 60px; /* Au-dessus du footer */
+    font-size: 1rem;
+    transition: visibility 0.5s, opacity 0.5s linear;
+    opacity: 0;
+}
+
+#toast-notification.show {
+    visibility: visible;
+    opacity: 1;
+}
+
+#toast-notification.error {
+    background-color: #dc3545; /* Rouge */
+}
+
+#toast-notification.warning {
+    background-color: #ffc107; /* Jaune */
+    color: #212529;
+}
