@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let db;
     let currentActiveButton = null;
+    let isDbModified = false;
 
     const config = {
         locateFile: filename => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/${filename}`
@@ -27,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
             db = new SQL.Database(new Uint8Array(fileBuffer));
             displayTables();
             controlsDiv.style.display = 'block';
+            saveDbButton.disabled = true; // Désactiver le bouton au chargement
+            isDbModified = false;
         } catch (error) {
             console.error("Erreur lors du chargement de la base de données:", error);
             alert("Impossible de charger le fichier. Est-ce une base de données SQLite valide ?");
@@ -148,6 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
             stmt.step();
             stmt.free();
             console.log(`Cellule mise à jour : ${tableName}.${colName} = ${newValue}`);
+            if (!isDbModified) {
+                isDbModified = true;
+                saveDbButton.disabled = false; // Activer le bouton à la première modification
+            }
         } catch (error) {
             console.error("Erreur de mise à jour:", error);
             alert("La mise à jour a échoué. Vérifiez la console pour plus de détails.");
@@ -170,6 +177,9 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
             document.body.removeChild(a);
             window.URL.revokeObjectURL(a.href);
+            // Réinitialiser l'état après la sauvegarde
+            isDbModified = false;
+            saveDbButton.disabled = true;
         } catch (error) {
             console.error("Erreur lors de la sauvegarde:", error);
             alert("Impossible de sauvegarder la base de données.");
