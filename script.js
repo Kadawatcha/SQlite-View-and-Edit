@@ -319,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 <option value="xlsx_current_table">${translations[currentLang]['export_format_excel']} (${tableName})</option>
                 <option value="zip_all">${translations[currentLang]['export_format_zip_all']}</option>
                 <option value="excel_all">${translations[currentLang]['export_format_excel_all']}</option>
+                <option value="xlsx_zip_all">${translations[currentLang]['export_format_xlsx_zip_all']}</option>
             </select>
             <button id="exportBtn" data-i18n-key="export_button">${translations[currentLang]['export_button']}</button>
         `;
@@ -338,6 +339,9 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                     break;
                 case 'excel_all':
                     exportAllTablesAsXLSX();
+                    break;
+                case 'xlsx_zip_all':
+                    exportAllTablesAsXLSXZip();
                     break;
                 default:
                     console.error("Unknown export format selected:", format);
@@ -420,6 +424,52 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         XLSX.writeFile(workbook, "database_export.xlsx");
     }
 
+    async function exportAllTablesAsXLSXZip() {
+        const tablesResult = db.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%';");
+        if (!tablesResult || tablesResult.length === 0) return;
+
+        const zip = new JSZip();
+        const tableNames = tablesResult[0].values.map(row => row[0]);
+
+        for (const tableName of tableNames) {
+            const results = db.exec(`SELECT * FROM ${tableName}`);
+            if (results && results.length > 0) {
+                const columns = results[0].columns;
+                const data = results[0].values;
+
+                const dataAsObjects = data.map(row => {
+                    let obj = {};
+                    columns.forEach((col, index) => {
+                        obj[col] = row[index] instanceof Uint8Array ? '[BLOB]' : row[index];
+                    });
+                    return obj;
+                });
+
+                const worksheet = XLSX.utils.json_to_sheet(dataAsObjects);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, tableName);
+
+                // Générer le fichier XLSX en mémoire (ArrayBuffer)
+                const xlsxData = XLSX.write(workbook, { type: 'array', bookType: 'xlsx' });
+                zip.file(`${tableName}.xlsx`, xlsxData);
+            }
+        }
+
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        downloadFile(zipBlob, "database_export_xlsx.zip");
+    }
+
+    // Helper function to download a blob
+    function downloadFile(blob, filename) {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
     function escapeCSV(str) {
         if (str === null || str === undefined) return '';
         str = String(str);
@@ -437,13 +487,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             csvContent += row.map(escapeCSV).join(',') + '\r\n';
         });
 
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `${tableName}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadFile(new Blob([csvContent], { type: "text/csv;charset=utf-8" }), `${tableName}.csv`);
     }
 
     function exportToXLSX(tableName, columns, data) {
@@ -460,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
         const worksheet = XLSX.utils.json_to_sheet(dataAsObjects);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, tableName);
-        XLSX.writeFile(workbook, `${tableName}.xlsx`);
+        downloadFile(XLSX.write(workbook, { type: 'blob', bookType: 'xlsx' }), `${tableName}.xlsx`);
     }
 
     function updateCell(tableName, colName, newValue, pkeyName, pkeyValue) {
