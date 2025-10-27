@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     const fileInput = document.getElementById('dbFile');
+    const toast = document.getElementById('toast-notification');
     const tableListContainer = document.querySelector('#tableList .table-button-container');
     const tableDataContainer = document.querySelector('#tableData .table-responsive');
     const controlsDiv = document.getElementById('controls');
@@ -17,6 +18,22 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
     };
 
     let currentLang = 'fr';
+
+    // --- Toast Notification ---
+    function showToast(message, type = 'info', duration = 3000) {
+        toast.className = 'show';
+        toast.textContent = message;
+        if (type === 'error') {
+            toast.classList.add('error');
+        } else if (type === 'warning') {
+            toast.classList.add('warning');
+        }
+
+        setTimeout(() => {
+            toast.className = toast.className.replace('show', '');
+            toast.classList.remove('error', 'warning');
+        }, duration);
+    }
 
     // --- IndexedDB Persistence ---
     const DB_NAME = 'SQLiteViewerDB';
@@ -245,8 +262,8 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             const pkeyInfo = db.exec(`PRAGMA table_info(${tableName})`);
             const pkeyColumn = pkeyInfo[0].values.find(col => col[5] === 1);
             if (!pkeyColumn) {
-                const warningText = translations[currentLang]['no_pk_warning'].replace('{tableName}', tableName);
-                console.warn(warningText);
+                const warningText = getTranslation('no_pk_warning', { tableName });
+                showToast(warningText, 'warning', 5000);
             }
             const pkeyColumnName = pkeyColumn ? pkeyColumn[1] : null;
 
@@ -264,6 +281,11 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             stmt.getColumnNames().forEach(colName => {
                 const th = document.createElement('th');
                 th.textContent = colName;
+                if (colName === pkeyColumnName) {
+                    th.classList.add('pk-column');
+                    th.title = getTranslation('pk_column_tooltip');
+                    th.innerHTML += ' 🔑'; // Ajoute une icône de clé
+                }
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -276,6 +298,10 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
                 stmt.getColumnNames().forEach(colName => {
                     const td = document.createElement('td');
                     const value = row[colName];
+
+                    if (colName === pkeyColumnName) {
+                        td.classList.add('pk-column');
+                    }
 
                     if (value instanceof Uint8Array) {
                         try {
@@ -610,16 +636,15 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             stmt.bind({ ':value': newValue, ':id': pkeyValue });
             stmt.step();
             stmt.free();
-            const successText = translations[currentLang]['update_success'].replace('{tableName}', tableName).replace('{colName}', colName).replace('{newValue}', String(newValue).substring(0, 50));
-            console.log(successText);
+            const successText = getTranslation('update_success', { tableName, colName, newValue: String(newValue).substring(0, 30) + '...' });
+            showToast(successText);
             saveDbToIndexedDB(db.export(), fileNameSpan.textContent); // Save changes to IndexedDB
             if (!isDbModified) {
                 isDbModified = true;
                 saveDbButton.disabled = false; // Activer le bouton à la première modification
             }
         } catch (error) {
-            console.error("Update error:", error);
-            alert(translations[currentLang]['update_error']);
+            showToast(getTranslation('update_error'), 'error');
             displayTableData(tableName);
         }
     }
@@ -648,6 +673,15 @@ document.addEventListener('DOMContentLoaded', () => { // Main function wrapper
             alert(translations[currentLang]['save_error']);
         }
     });
+
+    // Helper pour les traductions avec placeholders
+    function getTranslation(key, replacements = {}) {
+        let translation = translations[currentLang][key] || key;
+        for (const placeholder in replacements) {
+            translation = translation.replace(`{${placeholder}}`, replacements[placeholder]);
+        }
+        return translation;
+    }
 
     // --- Initialisation ---
 

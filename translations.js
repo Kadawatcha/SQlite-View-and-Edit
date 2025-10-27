@@ -26,7 +26,8 @@ const translations = {
         "export_format_json": "JSON",
         "export_format_zip_all": "Toutes les tables (CSV ZIP)",
         "export_format_xlsx_zip_all": "Toutes les tables (XLSX ZIP)",
-        "export_format_json_zip_all": "Toutes les tables (JSON ZIP)"
+        "export_format_json_zip_all": "Toutes les tables (JSON ZIP)",
+        "pk_column_tooltip": "Ceci est la clé primaire. Elle ne peut pas être modifiée."
     },
     en: {
         "title": "SQLite Viewer / Editor",
@@ -55,6 +56,7 @@ const translations = {
         "export_format_json": "JSON",
         "export_format_zip_all": "All tables (CSV ZIP)",
         "export_format_xlsx_zip_all": "All tables (XLSX ZIP)",
-        "export_format_json_zip_all": "All tables (JSON ZIP)"
+        "export_format_json_zip_all": "All tables (JSON ZIP)",
+        "pk_column_tooltip": "This is the primary key. It cannot be edited."
     }
 };
